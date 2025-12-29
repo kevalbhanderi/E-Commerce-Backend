@@ -75,4 +75,46 @@ export class MongoService {
   async deleteUserById(userId: string): Promise<void> {
     await this.userModel.findByIdAndDelete(userId).exec();
   }
+
+  /**
+   * Find active session token by user_id
+   * @param user_id
+   * @returns
+   */
+  async findSessionTokenByUserId(
+    user_id: string,
+  ): Promise<SessionTokenDocument | null> {
+    return this.sessionTokenModel.findOne({ user_id, is_active: true }).exec();
+  }
+
+  /**
+   * Deactivate existing session token
+   * @param user_id
+   */
+  async deactivateSessionTokenByUserId(user_id: string): Promise<void> {
+    await this.sessionTokenModel
+      .updateMany({ user_id, is_active: true }, { is_active: false })
+      .exec();
+  }
+
+  /**
+   * Replace session token
+   * @param sessionData
+   * @returns
+   */
+  async replaceOrCreateSessionToken(sessionData: {
+    token: string;
+    user_id?: string;
+    admin_id?: string;
+    email: string;
+    role: 'user' | 'admin';
+    ip_address?: string;
+    user_agent?: string;
+    expires_at: Date;
+  }): Promise<SessionTokenDocument> {
+    if (sessionData.user_id) {
+      await this.deactivateSessionTokenByUserId(sessionData.user_id);
+    }
+    return this.createSessionToken(sessionData);
+  }
 }
