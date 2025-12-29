@@ -49,7 +49,7 @@ export class LoginService {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
-      // Generate JWT token with role - ensure JWT expiration matches session expiration
+      // Generate JWT token with role
       const tokenPayload: JwtTokenInterface = {
         user_id: user._id.toString(),
         role: user.role,

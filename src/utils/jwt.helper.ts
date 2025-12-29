@@ -6,7 +6,7 @@ import { MongoService } from 'src/modules/mongo/mongo.service';
 
 @Injectable()
 export class JwtHelper {
-  constructor(private readonly mongoService: MongoService) { }
+  constructor(private readonly mongoService: MongoService) {}
 
   generateToken(tokenDto: JwtTokenInterface, expiresIn?: string): string {
     const secret = process.env.JWT_SECRET;
@@ -30,7 +30,6 @@ export class JwtHelper {
       }
 
       // Remove Bearer prefix if present
-      let cleanToken = token.trim();
       if (token.startsWith('Bearer ')) {
         token = token.slice(7).trim();
       }
