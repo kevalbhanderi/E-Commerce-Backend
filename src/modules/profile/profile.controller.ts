@@ -1,9 +1,10 @@
-import { Controller, Get, Headers, UseGuards } from '@nestjs/common';
+import { Controller, Get, Headers, Param, UseGuards } from '@nestjs/common';
 import {
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiSecurity,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -21,7 +22,15 @@ export class ProfileController {
     private readonly jwtHelper: JwtHelper,
   ) {}
 
-  @ApiOperation({ summary: 'Get User Profile' })
+  @ApiOperation({
+    summary: 'Get User Profile',
+  })
+  @ApiParam({
+    name: 'userId',
+    required: false,
+    description:
+      'User ID to view profile. Required for admin to view other users.',
+  })
   @ApiOkResponse({
     description: 'Profile retrieved successfully',
     type: ProfileResponseDto,
@@ -29,14 +38,15 @@ export class ProfileController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Profile not found' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-  @Get()
+  @Get('/:userId')
   async getProfile(
     @Headers('x-access-token') token: string,
+    @Param('userId') userId?: string,
   ): Promise<ProfileResponseDto> {
     const userInfo = await this.jwtHelper.verify(token);
     if (!userInfo) {
       throw new Error('Invalid token');
     }
-    return this.profileService.getProfile(userInfo);
+    return this.profileService.getProfile(userInfo, userId);
   }
 }
