@@ -71,7 +71,7 @@ export class MongoService {
     user_id?: string;
     admin_id?: string;
     email: string;
-    role: 'user' | 'admin';
+    role: 'user' | 'admin' | 'manager';
     ip_address?: string;
     user_agent?: string;
     expires_at: Date;
@@ -129,7 +129,7 @@ export class MongoService {
     user_id?: string;
     admin_id?: string;
     email: string;
-    role: 'user' | 'admin';
+    role: 'user' | 'admin' | 'manager';
     ip_address?: string;
     user_agent?: string;
     expires_at: Date;
@@ -159,5 +159,25 @@ export class MongoService {
    */
   async findAdminById(adminId: string): Promise<AdminDocument | null> {
     return this.adminModel.findById(adminId).exec();
+  }
+
+  /**
+   * Update user by ID
+   * @param userId
+   * @param updateData
+   * @returns
+   */
+  async updateUserById(
+    userId: string,
+    updateData: {
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      role?: 'user' | 'manager';
+    },
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(userId, updateData, { new: true })
+      .exec();
   }
 }

@@ -21,8 +21,8 @@ export class SessionToken {
   @Prop({ required: true, lowercase: true, trim: true, index: true })
   email: string;
 
-  @Prop({ required: true, enum: ['user', 'admin'], index: true })
-  role: 'user' | 'admin';
+  @Prop({ required: true, enum: ['user', 'admin', 'manager'], index: true })
+  role: 'user' | 'admin' | 'manager';
 
   @Prop()
   ip_address?: string;

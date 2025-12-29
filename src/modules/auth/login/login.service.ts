@@ -28,7 +28,7 @@ export class LoginService {
       _id: string;
       email: string;
       password: string;
-      role: 'user' | 'admin';
+      role: 'user' | 'admin' | 'manager';
       isActive: boolean;
       firstName?: string;
       lastName?: string;

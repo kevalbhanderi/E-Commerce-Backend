@@ -18,8 +18,8 @@ export class User {
   @Prop({ required: true, trim: true })
   lastName: string;
 
-  @Prop({ default: 'user', enum: ['user'] })
-  role: 'user';
+  @Prop({ default: 'user', enum: ['user', 'manager'] })
+  role: 'user' | 'manager';
 
   @Prop({ default: true })
   isActive: boolean;

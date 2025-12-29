@@ -5,7 +5,7 @@ export interface IUser extends Document {
   readonly password: string;
   readonly firstName: string;
   readonly lastName: string;
-  readonly role: 'user';
+  readonly role: 'user' | 'manager';
   readonly isActive: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;

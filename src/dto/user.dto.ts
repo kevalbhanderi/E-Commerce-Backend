@@ -14,8 +14,8 @@ export class UserDto {
   @ApiProperty({ description: 'User last name' })
   readonly lastName: string;
 
-  @ApiProperty({ description: 'User role', enum: ['user', 'admin'] })
-  readonly role: 'user' | 'admin';
+  @ApiProperty({ description: 'User role', enum: ['user', 'admin', 'manager'] })
+  readonly role: 'user' | 'admin' | 'manager';
 
   constructor(user: UserObject, userId: string) {
     this.userId = userId;
