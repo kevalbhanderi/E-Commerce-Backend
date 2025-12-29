@@ -13,7 +13,7 @@ export class AuthGuard implements CanActivate {
         if (!token) {
             throw new UnauthorizedException({
                 isError: true,
-                message: 'Login required',
+                message: 'Login required - Token not provided',
             });
         }
 
@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
 
         throw new UnauthorizedException({
             isError: true,
-            message: 'Login required',
+            message: 'Login required - Invalid or expired token',
         });
     }
 }

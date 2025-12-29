@@ -11,7 +11,10 @@ export const swagger = (app: INestApplication) => {
     )
     .setVersion('1.0')
     .addServer('/api/')
-    .addBearerAuth({ type: 'apiKey', name: 'x-access-token', in: 'header' })
+    .addApiKey(
+      { type: 'apiKey', name: 'x-access-token', in: 'header' },
+      'x-access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, options, {

@@ -46,16 +46,23 @@ export class RegisterService {
     const user = await this.mongoService.createUser(userData);
 
     try {
-      // Generate JWT token with user_id
+      // Calculate token expiration (24h is default time)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      // Generate JWT token with user_id - ensure JWT expiration matches session expiration
       const tokenPayload: JwtTokenInterface = {
         user_id: user._id.toString(),
         role: 'user',
       };
-      const token = this.jwtHelper.generateToken(tokenPayload);
-
-      // Calculate token expiration (24h is default time)
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
+      // Calculate expiration in seconds to match session expiration
+      const expiresInSeconds = Math.floor(
+        (expiresAt.getTime() - new Date().getTime()) / 1000,
+      );
+      const token = this.jwtHelper.generateToken(
+        tokenPayload,
+        `${expiresInSeconds}s`,
+      );
 
       // Create session token (save user and token together)
       await this.mongoService.createSessionToken({

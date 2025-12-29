@@ -45,16 +45,23 @@ export class LoginService {
     }
 
     try {
-      // Generate JWT token with role
+      // Calculate token expiration (24h is default time)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      // Generate JWT token with role - ensure JWT expiration matches session expiration
       const tokenPayload: JwtTokenInterface = {
         user_id: user._id.toString(),
         role: user.role,
       };
-      const token = this.jwtHelper.generateToken(tokenPayload);
-
-      // Calculate token expiration (24h is default time)
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
+      // Calculate expiration in seconds to match session expiration
+      const expiresInSeconds = Math.floor(
+        (expiresAt.getTime() - new Date().getTime()) / 1000,
+      );
+      const token = this.jwtHelper.generateToken(
+        tokenPayload,
+        `${expiresInSeconds}s`,
+      );
 
       // Replace existing session token or create new one
       await this.mongoService.replaceOrCreateSessionToken({

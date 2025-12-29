@@ -6,43 +6,75 @@ import { MongoService } from 'src/modules/mongo/mongo.service';
 
 @Injectable()
 export class JwtHelper {
-  constructor(private readonly mongoService: MongoService) {}
+  constructor(private readonly mongoService: MongoService) { }
 
-  generateToken(tokenDto: JwtTokenInterface): string {
+  generateToken(tokenDto: JwtTokenInterface, expiresIn?: string): string {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       throw new Error('JWT_SECRET is not defined');
     }
-    const expiresIn = process.env.JWT_EXPIRED_TIME || '24h';
-    const token = jwt.sign(tokenDto, secret, { expiresIn } as jwt.SignOptions);
-    return token;
+    const tokenExpiresIn = expiresIn || process.env.JWT_EXPIRED_TIME || '24h';
+    return jwt.sign(tokenDto, secret, {
+      expiresIn: tokenExpiresIn,
+    } as jwt.SignOptions);
   }
 
   async verify(token: string): Promise<false | JwtTokenInterface> {
     try {
+      if (!token) {
+        return false;
+      }
       const secret = process.env.JWT_SECRET;
       if (!secret) {
         return false;
       }
-      const payload = jwt.verify(token, secret) as JwtTokenInterface;
+
+      // Remove Bearer prefix if present
+      let cleanToken = token.trim();
+      if (token.startsWith('Bearer ')) {
+        token = token.slice(7).trim();
+      }
+      if (!token) {
+        return false;
+      }
+      let payload: JwtTokenInterface;
+      try {
+        payload = jwt.verify(token, secret) as JwtTokenInterface;
+      } catch {
+        return false;
+      }
+
+      // Check if session token exists
       const userSession =
         await this.mongoService.findSessionTokenByEmail(token);
       if (!userSession) {
         return false;
       }
+
+      // Check if session token is expired
+      if (userSession.expires_at < new Date()) {
+        return false;
+      }
+
       return { user_id: payload.user_id, role: payload.role };
     } catch {
       return false;
     }
   }
 
-  getTokenFromHeader(request: Request): string {
-    let token = request.headers['x-access-token'] as string;
+  getTokenFromHeader(request: Request): string | undefined {
+    // Try different header formats (case-insensitive)
+    const token = request.headers['x-access-token'] as string;
 
-    if (token && token.startsWith('Bearer ')) {
-      // Remove Bearer from string
-      return (token = token.slice(7, token.length));
+    if (!token) {
+      return undefined;
     }
-    return token;
+
+    // Remove Bearer prefix if present
+    if (token.startsWith('Bearer ')) {
+      return token.slice(7).trim();
+    }
+
+    return token.trim();
   }
 }

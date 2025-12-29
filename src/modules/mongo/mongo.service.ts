@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
+import { Admin, AdminDocument } from './schema/admin.schema';
 import {
   SessionToken,
   SessionTokenDocument,
@@ -11,6 +12,7 @@ import {
 export class MongoService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(Admin.name) private readonly adminModel: Model<AdminDocument>,
     @InjectModel(SessionToken.name)
     private readonly sessionTokenModel: Model<SessionTokenDocument>,
   ) {}
@@ -69,7 +71,8 @@ export class MongoService {
       ...sessionData,
       is_active: true,
     });
-    return sessionToken.save();
+    const saved = await sessionToken.save();
+    return saved;
   }
 
   async deleteUserById(userId: string): Promise<void> {
@@ -116,5 +119,23 @@ export class MongoService {
       await this.deactivateSessionTokenByUserId(sessionData.user_id);
     }
     return this.createSessionToken(sessionData);
+  }
+
+  /**
+   * Get user Details
+   * @param userId
+   * @returns
+   */
+  async findUserById(userId: string): Promise<UserDocument | null> {
+    return this.userModel.findById(userId).exec();
+  }
+
+  /**
+   * Get admin Details
+   * @param adminId
+   * @returns
+   */
+  async findAdminById(adminId: string): Promise<AdminDocument | null> {
+    return this.adminModel.findById(adminId).exec();
   }
 }
