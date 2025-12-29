@@ -5,6 +5,7 @@ import { MongoService } from './mongo.service';
 import { User, UserSchema } from './schema/user.schema';
 import { Admin, AdminSchema } from './schema/admin.schema';
 import { SessionToken, SessionTokenSchema } from './schema/session-token.schema';
+import { AdminSeeder } from './seeder/admin.seeder';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { SessionToken, SessionTokenSchema } from './schema/session-token.schema'
     ]),
   ],
   controllers: [MongoController],
-  providers: [MongoService],
+  providers: [MongoService, AdminSeeder],
   exports: [MongoService, MongooseModule],
 })
 export class MongoModule {}
