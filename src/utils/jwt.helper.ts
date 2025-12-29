@@ -30,7 +30,7 @@ export class JwtHelper {
       if (!userSession) {
         return false;
       }
-      return { user_id: payload.user_id };
+      return { user_id: payload.user_id, role: payload.role };
     } catch {
       return false;
     }
