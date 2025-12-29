@@ -24,20 +24,58 @@ export class LoginService {
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     // Check if user exists
     const user = await this.mongoService.findUserByEmail(loginDto.email);
+    let account: {
+      _id: string;
+      email: string;
+      password: string;
+      role: 'user' | 'admin';
+      isActive: boolean;
+      firstName?: string;
+      lastName?: string;
+      name?: string;
+    } | null = null;
+    let isAdmin = false;
 
-    if (!user) {
+    if (user) {
+      account = {
+        _id: user._id.toString(),
+        email: user.email,
+        password: user.password,
+        role: user.role,
+        isActive: user.isActive,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+      isAdmin = false;
+    } else {
+      // Check if admin exists
+      const admin = await this.mongoService.findAdminByEmail(loginDto.email);
+      if (admin) {
+        account = {
+          _id: admin._id.toString(),
+          email: admin.email,
+          password: admin.password,
+          role: admin.role,
+          isActive: admin.isActive,
+          name: admin.name,
+        };
+        isAdmin = true;
+      }
+    }
+
+    if (!account) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Check if user is active
-    if (!user.isActive) {
-      throw new UnauthorizedException('User account is deactivated');
+    // Check if account is active
+    if (!account.isActive) {
+      throw new UnauthorizedException('Account is deactivated');
     }
 
     // Hash the provided password and compare with stored hash
     const isPasswordValid = await comparePassword(
       loginDto.password,
-      user.password,
+      account.password,
     );
 
     if (!isPasswordValid) {
@@ -51,8 +89,8 @@ export class LoginService {
 
       // Generate JWT token with role
       const tokenPayload: JwtTokenInterface = {
-        user_id: user._id.toString(),
-        role: user.role,
+        user_id: account._id.toString(),
+        role: account.role,
       };
       // Calculate expiration in seconds to match session expiration
       const expiresInSeconds = Math.floor(
@@ -66,22 +104,24 @@ export class LoginService {
       // Replace existing session token or create new one
       await this.mongoService.replaceOrCreateSessionToken({
         token,
-        user_id: user._id.toString(),
-        email: user.email,
-        role: user.role,
+        user_id: isAdmin ? undefined : account._id.toString(),
+        admin_id: isAdmin ? account._id.toString() : undefined,
+        email: account.email,
+        role: account.role,
         expires_at: expiresAt,
       });
 
-      this.logger.log(`User logged in successfully: ${user.email}`);
+      const logMessage = isAdmin ? 'Admin' : 'User';
+      this.logger.log(`${logMessage} logged in successfully: ${account.email}`);
 
       const userObject: UserObject = {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
+        email: account.email,
+        firstName: isAdmin ? account.name || '' : account.firstName || '',
+        lastName: isAdmin ? '' : account.lastName || '',
+        role: account.role,
       };
 
-      return new LoginResponseDto(userObject, user._id.toString(), token);
+      return new LoginResponseDto(userObject, account._id.toString(), token);
     } catch (error) {
       this.logger.error('Error during login:', error);
       throw new BadRequestException('Failed to generate authentication token');

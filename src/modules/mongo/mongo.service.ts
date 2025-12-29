@@ -22,6 +22,15 @@ export class MongoService {
   }
 
   /**
+   * Find admin by email
+   * @param email
+   * @returns
+   */
+  async findAdminByEmail(email: string): Promise<AdminDocument | null> {
+    return this.adminModel.findOne({ email: email.toLowerCase() }).exec();
+  }
+
+  /**
    * Build and save user in DB
    * @param userData
    * @returns
@@ -101,6 +110,16 @@ export class MongoService {
   }
 
   /**
+   * Deactivate existing session token by admin_id
+   * @param admin_id
+   */
+  async deactivateSessionTokenByAdminId(admin_id: string): Promise<void> {
+    await this.sessionTokenModel
+      .updateMany({ admin_id, is_active: true }, { is_active: false })
+      .exec();
+  }
+
+  /**
    * Replace session token
    * @param sessionData
    * @returns
@@ -117,6 +136,9 @@ export class MongoService {
   }): Promise<SessionTokenDocument> {
     if (sessionData.user_id) {
       await this.deactivateSessionTokenByUserId(sessionData.user_id);
+    }
+    if (sessionData.admin_id) {
+      await this.deactivateSessionTokenByAdminId(sessionData.admin_id);
     }
     return this.createSessionToken(sessionData);
   }
