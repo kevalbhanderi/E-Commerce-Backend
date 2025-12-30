@@ -7,6 +7,8 @@ import {
   SessionToken,
   SessionTokenDocument,
 } from './schema/session-token.schema';
+import { Category, CategoryDocument } from './schema/category.schema';
+import { SubCategory, SubCategoryDocument } from './schema/subcategory.schema';
 
 @Injectable()
 export class MongoService {
@@ -15,6 +17,10 @@ export class MongoService {
     @InjectModel(Admin.name) private readonly adminModel: Model<AdminDocument>,
     @InjectModel(SessionToken.name)
     private readonly sessionTokenModel: Model<SessionTokenDocument>,
+    @InjectModel(Category.name)
+    private readonly categoryModel: Model<CategoryDocument>,
+    @InjectModel(SubCategory.name)
+    private readonly subCategoryModel: Model<SubCategoryDocument>,
   ) {}
 
   async findUserByEmail(email: string): Promise<UserDocument | null> {
@@ -208,5 +214,197 @@ export class MongoService {
       page,
       limit,
     };
+  }
+
+  /**
+   * Create category
+   * @param categoryData
+   * @returns
+   */
+  async createCategory(categoryData: {
+    name: string;
+    slug: string;
+    description?: string;
+    createdBy: string;
+  }): Promise<CategoryDocument> {
+    const category = new this.categoryModel({
+      ...categoryData,
+      isActive: true,
+    });
+    return category.save();
+  }
+
+  /**
+   * Find category by slug
+   * @param slug
+   * @returns
+   */
+  async findCategoryBySlug(slug: string): Promise<CategoryDocument | null> {
+    return this.categoryModel.findOne({ slug: slug.toLowerCase() }).exec();
+  }
+
+  /**
+   * Find category by ID
+   * @param categoryId
+   * @returns
+   */
+  async findCategoryById(categoryId: string): Promise<CategoryDocument | null> {
+    return this.categoryModel.findById(categoryId).exec();
+  }
+
+  /**
+   * Get all categories with pagination
+   * @param page
+   * @param limit
+   * @param isActive
+   * @returns
+   */
+  async findAllCategories(
+    page: number = 1,
+    limit: number = 10,
+    isActive?: boolean,
+  ): Promise<{
+    categories: CategoryDocument[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const query = isActive !== undefined ? { isActive } : {};
+
+    const [categories, total] = await Promise.all([
+      this.categoryModel
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .exec(),
+      this.categoryModel.countDocuments(query).exec(),
+    ]);
+
+    return {
+      categories,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Update category by ID
+   * @param categoryId
+   * @param updateData
+   * @returns
+   */
+  async updateCategoryById(
+    categoryId: string,
+    updateData: {
+      name?: string;
+      slug?: string;
+      description?: string;
+      image?: string;
+      isActive?: boolean;
+    },
+  ): Promise<CategoryDocument | null> {
+    return this.categoryModel
+      .findByIdAndUpdate(categoryId, updateData, { new: true })
+      .exec();
+  }
+
+  /**
+   * Delete category by ID
+   * @param categoryId
+   * @returns
+   */
+  async deleteCategoryById(categoryId: string): Promise<void> {
+    await this.categoryModel.findByIdAndDelete(categoryId).exec();
+  }
+
+  /**
+   * Create subcategory
+   * @param subCategoryData
+   * @returns
+   */
+  async createSubCategory(subCategoryData: {
+    name: string;
+    slug: string;
+    categoryId: string;
+  }): Promise<SubCategoryDocument> {
+    const subCategory = new this.subCategoryModel({
+      ...subCategoryData,
+      isActive: true,
+    });
+    return subCategory.save();
+  }
+
+  /**
+   * Find subcategory by slug and categoryId
+   * @param slug
+   * @param categoryId
+   * @returns
+   */
+  async findSubCategoryBySlugAndCategory(
+    slug: string,
+    categoryId: string,
+  ): Promise<SubCategoryDocument | null> {
+    return this.subCategoryModel
+      .findOne({ slug: slug.toLowerCase(), categoryId })
+      .exec();
+  }
+
+  /**
+   * Find subcategory by ID
+   * @param subCategoryId
+   * @returns
+   */
+  async findSubCategoryById(
+    subCategoryId: string,
+  ): Promise<SubCategoryDocument | null> {
+    return this.subCategoryModel.findById(subCategoryId).exec();
+  }
+
+  /**
+   * Get all subcategories by categoryId
+   * @param categoryId
+   * @param isActive
+   * @returns
+   */
+  async findSubCategoriesByCategoryId(
+    categoryId: string,
+    isActive?: boolean,
+  ): Promise<SubCategoryDocument[]> {
+    const query: { categoryId: string; isActive?: boolean } = { categoryId };
+    if (isActive !== undefined) {
+      query.isActive = isActive;
+    }
+    return this.subCategoryModel.find(query).sort({ createdAt: -1 }).exec();
+  }
+
+  /**
+   * Update subcategory by ID
+   * @param subCategoryId
+   * @param updateData
+   * @returns
+   */
+  async updateSubCategoryById(
+    subCategoryId: string,
+    updateData: {
+      name?: string;
+      slug?: string;
+      isActive?: boolean;
+    },
+  ): Promise<SubCategoryDocument | null> {
+    return this.subCategoryModel
+      .findByIdAndUpdate(subCategoryId, updateData, { new: true })
+      .exec();
+  }
+
+  /**
+   * Delete subcategory by ID
+   * @param subCategoryId
+   * @returns
+   */
+  async deleteSubCategoryById(subCategoryId: string): Promise<void> {
+    await this.subCategoryModel.findByIdAndDelete(subCategoryId).exec();
   }
 }
