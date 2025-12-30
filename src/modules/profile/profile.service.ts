@@ -5,11 +5,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { MongoService } from 'src/modules/mongo/mongo.service';
+import { MongoService } from '../../modules/mongo/mongo.service';
 import { ProfileResponseDto } from './dto/profile-response.dto';
-import { UserObject } from 'src/interface/user.object.interface';
-import { JwtTokenInterface } from 'src/interface/jwt.token.interface';
-import { Role } from 'src/enums/role.enum';
+import { UserObject } from '../../interface/user.object.interface';
+import { JwtTokenInterface } from '../../interface/jwt.token.interface';
+import { Role } from '../../enums/role.enum';
 
 @Injectable()
 export class ProfileService {

@@ -5,12 +5,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { MongoService } from 'src/modules/mongo/mongo.service';
+import { MongoService } from '../../modules/mongo/mongo.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CategoryListResponseDto } from './dto/category-list-response.dto';
-import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
+import type { JwtTokenInterface } from '../../interface/jwt.token.interface';
 
 @Injectable()
 export class CategoryService {

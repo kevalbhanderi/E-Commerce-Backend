@@ -28,10 +28,10 @@ import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
 import { SubCategoryResponseDto } from './dto/sub-category-response.dto';
 import { SubCategoryListResponseDto } from './dto/sub-category-list-response.dto';
-import { AuthGuard } from 'src/guard/auth.guard';
-import { RolesGuard } from 'src/guard/roles.guard';
-import { Roles } from 'src/decorators/roles.decorator';
-import { Role } from 'src/enums/role.enum';
+import { AuthGuard } from '../../guard/auth.guard';
+import { RolesGuard } from '../../guard/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { Role } from '../../enums/role.enum';
 
 @Controller('sub-category')
 @UseGuards(AuthGuard, RolesGuard)

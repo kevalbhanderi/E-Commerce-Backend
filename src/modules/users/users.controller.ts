@@ -23,12 +23,12 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserResponseDto } from './dto/update-user-response.dto';
 import { UserListResponseDto } from './dto/user-list-response.dto';
-import { AuthGuard } from 'src/guard/auth.guard';
-import { RolesGuard } from 'src/guard/roles.guard';
-import { Roles } from 'src/decorators/roles.decorator';
-import { Role } from 'src/enums/role.enum';
-import { User } from 'src/decorators/user.decorator';
-import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
+import { AuthGuard } from '../../guard/auth.guard';
+import { RolesGuard } from '../../guard/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { Role } from '../../enums/role.enum';
+import { User } from '../../decorators/user.decorator';
+import type { JwtTokenInterface } from '../../interface/jwt.token.interface';
 
 @Controller('users')
 @UseGuards(AuthGuard, RolesGuard)

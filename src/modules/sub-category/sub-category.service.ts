@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { MongoService } from 'src/modules/mongo/mongo.service';
+import { MongoService } from '../../modules/mongo/mongo.service';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
 import { SubCategoryResponseDto } from './dto/sub-category-response.dto';

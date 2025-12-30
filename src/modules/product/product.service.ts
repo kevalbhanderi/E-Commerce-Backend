@@ -6,15 +6,15 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { MongoService } from 'src/modules/mongo/mongo.service';
-import { FileUploadHelper } from 'src/utils/file-upload.helper';
-import { LinkTokenHelper } from 'src/utils/link-token.helper';
+import { MongoService } from '../../modules/mongo/mongo.service';
+import { FileUploadHelper } from '../../utils/file-upload.helper';
+import { LinkTokenHelper } from '../../utils/link-token.helper';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { ProductListResponseDto } from './dto/product-list-response.dto';
 import { ShareLinkResponseDto } from './dto/share-link-response.dto';
-import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
+import type { JwtTokenInterface } from '../../interface/jwt.token.interface';
 
 @Injectable()
 export class ProductService {

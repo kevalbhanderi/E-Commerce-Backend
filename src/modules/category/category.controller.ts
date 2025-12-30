@@ -28,12 +28,12 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CategoryListResponseDto } from './dto/category-list-response.dto';
-import { AuthGuard } from 'src/guard/auth.guard';
-import { RolesGuard } from 'src/guard/roles.guard';
-import { Roles } from 'src/decorators/roles.decorator';
-import { Role } from 'src/enums/role.enum';
-import { User } from 'src/decorators/user.decorator';
-import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
+import { AuthGuard } from '../../guard/auth.guard';
+import { RolesGuard } from '../../guard/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { Role } from '../../enums/role.enum';
+import { User } from '../../decorators/user.decorator';
+import type { JwtTokenInterface } from '../../interface/jwt.token.interface';
 
 @Controller('category')
 @UseGuards(AuthGuard, RolesGuard)

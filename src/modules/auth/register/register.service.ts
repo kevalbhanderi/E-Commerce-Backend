@@ -4,13 +4,13 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { generateMD5Hash } from 'src/utils/password.helper';
-import { JwtHelper } from 'src/utils/jwt.helper';
+import { generateMD5Hash } from '../../../utils/password.helper';
+import { JwtHelper } from '../../../utils/jwt.helper';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
-import { MongoService } from 'src/modules/mongo/mongo.service';
-import { JwtTokenInterface } from 'src/interface/jwt.token.interface';
-import { UserObject } from 'src/interface/user.object.interface';
+import { MongoService } from '../../../modules/mongo/mongo.service';
+import { JwtTokenInterface } from '../../../interface/jwt.token.interface';
+import { UserObject } from '../../../interface/user.object.interface';
 
 @Injectable()
 export class RegisterService {
@@ -50,7 +50,7 @@ export class RegisterService {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
-      // Generate JWT token with user_id - ensure JWT expiration matches session expiration
+      // Generate JWT token with user_id
       const tokenPayload: JwtTokenInterface = {
         user_id: user._id.toString(),
         role: 'user',
@@ -64,7 +64,7 @@ export class RegisterService {
         `${expiresInSeconds}s`,
       );
 
-      // Create session token (save user and token together)
+      // Create session token
       await this.mongoService.createSessionToken({
         token,
         user_id: user._id.toString(),

@@ -12,7 +12,7 @@ import { Category, CategorySchema } from './schema/category.schema';
 import { SubCategory, SubCategorySchema } from './schema/subcategory.schema';
 import { Product, ProductSchema } from './schema/product.schema';
 import { AdminSeeder } from './seeder/admin.seeder';
-import { JwtHelper } from 'src/utils/jwt.helper';
+import { JwtHelper } from '../../utils/jwt.helper';
 
 @Module({
   imports: [

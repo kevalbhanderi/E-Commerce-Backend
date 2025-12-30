@@ -35,13 +35,13 @@ import { ProductResponseDto } from './dto/product-response.dto';
 import { ProductListResponseDto } from './dto/product-list-response.dto';
 import { GenerateShareLinkDto } from './dto/generate-share-link.dto';
 import { ShareLinkResponseDto } from './dto/share-link-response.dto';
-import { AuthGuard } from 'src/guard/auth.guard';
-import { OptionalAuthGuard } from 'src/guard/optional-auth.guard';
-import { RolesGuard } from 'src/guard/roles.guard';
-import { Roles } from 'src/decorators/roles.decorator';
-import { Role } from 'src/enums/role.enum';
-import { User, OptionalUser } from 'src/decorators/user.decorator';
-import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
+import { AuthGuard } from '../../guard/auth.guard';
+import { OptionalAuthGuard } from '../../guard/optional-auth.guard';
+import { RolesGuard } from '../../guard/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { Role } from '../../enums/role.enum';
+import { User, OptionalUser } from '../../decorators/user.decorator';
+import type { JwtTokenInterface } from '../../interface/jwt.token.interface';
 
 @Controller('product')
 @UseGuards(AuthGuard, RolesGuard)

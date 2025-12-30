@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { JwtTokenInterface } from '../interface/jwt.token.interface';
-import { MongoService } from 'src/modules/mongo/mongo.service';
+import { MongoService } from '../modules/mongo/mongo.service';
 
 @Injectable()
 export class JwtHelper {

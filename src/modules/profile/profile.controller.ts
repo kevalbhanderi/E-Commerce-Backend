@@ -11,9 +11,9 @@ import {
 } from '@nestjs/swagger';
 import { ProfileService } from './profile.service';
 import { ProfileResponseDto } from './dto/profile-response.dto';
-import { AuthGuard } from 'src/guard/auth.guard';
-import { User } from 'src/decorators/user.decorator';
-import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
+import { AuthGuard } from '../../guard/auth.guard';
+import { User } from '../../decorators/user.decorator';
+import type { JwtTokenInterface } from '../../interface/jwt.token.interface';
 
 @Controller('profile')
 @UseGuards(AuthGuard)

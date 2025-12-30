@@ -5,16 +5,16 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { MongoService } from 'src/modules/mongo/mongo.service';
+import { MongoService } from '../../modules/mongo/mongo.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserResponseDto } from './dto/update-user-response.dto';
 import {
   UserListResponseDto,
   UserListItemDto,
 } from './dto/user-list-response.dto';
-import { JwtTokenInterface } from 'src/interface/jwt.token.interface';
-import { UserObject } from 'src/interface/user.object.interface';
-import { Role } from 'src/enums/role.enum';
+import { JwtTokenInterface } from '../../interface/jwt.token.interface';
+import { UserObject } from '../../interface/user.object.interface';
+import { Role } from '../../enums/role.enum';
 
 @Injectable()
 export class UsersService {
