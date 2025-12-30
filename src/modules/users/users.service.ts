@@ -8,8 +8,13 @@ import {
 import { MongoService } from 'src/modules/mongo/mongo.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserResponseDto } from './dto/update-user-response.dto';
+import {
+  UserListResponseDto,
+  UserListItemDto,
+} from './dto/user-list-response.dto';
 import { JwtTokenInterface } from 'src/interface/jwt.token.interface';
 import { UserObject } from 'src/interface/user.object.interface';
+import { Role } from 'src/enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -19,10 +24,10 @@ export class UsersService {
 
   /**
    * Update User
-   * @param userInfo 
-   * @param userId 
-   * @param updateDto 
-   * @returns 
+   * @param userInfo
+   * @param userId
+   * @param updateDto
+   * @returns
    */
   async updateUser(
     userInfo: JwtTokenInterface,
@@ -41,7 +46,7 @@ export class UsersService {
     }
 
     // Validate permissions
-    if (userInfo.role === 'admin') {
+    if (userInfo.role === Role.ADMIN.valueOf()) {
       // Admin can only update role
       if (updateDto.email || updateDto.firstName || updateDto.lastName) {
         throw new ForbiddenException(
@@ -128,16 +133,16 @@ export class UsersService {
 
   /**
    * Delete User
-   * @param userInfo 
-   * @param userId 
-   * @returns 
+   * @param userInfo
+   * @param userId
+   * @returns
    */
   async deleteUser(
     userInfo: JwtTokenInterface,
     userId: string,
   ): Promise<{ message: string }> {
     // Only admin can delete users
-    if (userInfo.role !== 'admin') {
+    if (userInfo.role !== Role.ADMIN.valueOf()) {
       throw new ForbiddenException('Only admin can delete users');
     }
 
@@ -153,5 +158,40 @@ export class UsersService {
     this.logger.log(`User deleted successfully: ${user.email}`);
 
     return { message: 'User deleted successfully' };
+  }
+
+  /**
+   * Get all users (admin only)
+   * @param page
+   * @param limit
+   * @returns
+   */
+  async getAllUsers(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<UserListResponseDto> {
+    const result = await this.mongoService.findAllUsers(page, limit);
+
+    const userListItems = result.users.map((user) => {
+      const userObject: UserObject = {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      };
+      return new UserListItemDto(
+        userObject,
+        user._id.toString(),
+        user.createdAt,
+        user.isActive,
+      );
+    });
+
+    return new UserListResponseDto(
+      userListItems,
+      result.total,
+      result.page,
+      result.limit,
+    );
   }
 }

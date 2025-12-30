@@ -1,5 +1,6 @@
-import { Controller, Get, Headers, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import {
+  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -11,16 +12,14 @@ import {
 import { ProfileService } from './profile.service';
 import { ProfileResponseDto } from './dto/profile-response.dto';
 import { AuthGuard } from 'src/guard/auth.guard';
-import { JwtHelper } from 'src/utils/jwt.helper';
+import { User } from 'src/decorators/user.decorator';
+import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
 
 @Controller('profile')
 @UseGuards(AuthGuard)
 @ApiSecurity('x-access-token')
 export class ProfileController {
-  constructor(
-    private readonly profileService: ProfileService,
-    private readonly jwtHelper: JwtHelper,
-  ) {}
+  constructor(private readonly profileService: ProfileService) {}
 
   @ApiOperation({
     summary: 'Get User Profile',
@@ -29,24 +28,23 @@ export class ProfileController {
     name: 'userId',
     required: false,
     description:
-      'User ID to view profile. Required for admin to view other users.',
+      'Optional user ID.So, Admins can provide any userId, regular users can only provide their own userId.',
   })
   @ApiOkResponse({
     description: 'Profile retrieved successfully',
     type: ProfileResponseDto,
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({
+    description: 'Forbidden - Cannot view other users profile',
+  })
   @ApiNotFoundResponse({ description: 'Profile not found' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Get('/:userId')
   async getProfile(
-    @Headers('x-access-token') token: string,
+    @User() userInfo: JwtTokenInterface,
     @Param('userId') userId?: string,
   ): Promise<ProfileResponseDto> {
-    const userInfo = await this.jwtHelper.verify(token);
-    if (!userInfo) {
-      throw new Error('Invalid token');
-    }
     return this.profileService.getProfile(userInfo, userId);
   }
 }

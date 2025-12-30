@@ -9,6 +9,7 @@ import { MongoService } from 'src/modules/mongo/mongo.service';
 import { ProfileResponseDto } from './dto/profile-response.dto';
 import { UserObject } from 'src/interface/user.object.interface';
 import { JwtTokenInterface } from 'src/interface/jwt.token.interface';
+import { Role } from 'src/enums/role.enum';
 
 @Injectable()
 export class ProfileService {
@@ -25,7 +26,10 @@ export class ProfileService {
       const targetUserId = this.resolveTargetUserId(userInfo, requestedUserId);
 
       // Fetch and return profile
-      if (userInfo.role === 'admin' && targetUserId === userInfo.user_id) {
+      if (
+        userInfo.role === Role.ADMIN.valueOf() &&
+        targetUserId === userInfo.user_id
+      ) {
         return this.getAdminProfile(targetUserId);
       }
       return this.getUserProfile(targetUserId);
@@ -51,7 +55,10 @@ export class ProfileService {
     }
 
     // Admin can view any profile, regular users can only view their own
-    if (userInfo.role !== 'admin' && requestedUserId !== userInfo.user_id) {
+    if (
+      userInfo.role !== Role.ADMIN.valueOf() &&
+      requestedUserId !== userInfo.user_id
+    ) {
       throw new ForbiddenException(
         'You do not have permission to view this profile',
       );

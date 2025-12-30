@@ -2,9 +2,10 @@ import {
   Body,
   Controller,
   Delete,
-  Headers,
+  Get,
   Param,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -14,23 +15,47 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiSecurity,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserResponseDto } from './dto/update-user-response.dto';
+import { UserListResponseDto } from './dto/user-list-response.dto';
 import { AuthGuard } from 'src/guard/auth.guard';
-import { JwtHelper } from 'src/utils/jwt.helper';
+import { RolesGuard } from 'src/guard/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { Role } from 'src/enums/role.enum';
+import { User } from 'src/decorators/user.decorator';
+import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
 
 @Controller('users')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @ApiSecurity('x-access-token')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly jwtHelper: JwtHelper,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
+
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiOkResponse({
+    description: 'Users retrieved successfully',
+    type: UserListResponseDto,
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({
+    description: 'Forbidden - Only admin can view all users',
+  })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @Roles(Role.ADMIN)
+  @Get()
+  async getAllUsers(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ): Promise<UserListResponseDto> {
+    const pageNumber = page ? parseInt(page, 10) : 1;
+    const limitNumber = limit ? parseInt(limit, 10) : 10;
+    return this.usersService.getAllUsers(pageNumber, limitNumber);
+  }
 
   @ApiOperation({ summary: 'Update user profile' })
   @ApiParam({
@@ -47,14 +72,10 @@ export class UsersController {
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Put(':userId')
   async updateUser(
-    @Headers('x-access-token') token: string,
+    @User() userInfo: JwtTokenInterface,
     @Param('userId') userId: string,
     @Body() updateDto: UpdateUserDto,
   ): Promise<UpdateUserResponseDto> {
-    const userInfo = await this.jwtHelper.verify(token);
-    if (!userInfo) {
-      throw new Error('Invalid token');
-    }
     return this.usersService.updateUser(userInfo, userId, updateDto);
   }
 
@@ -81,15 +102,12 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @Roles(Role.ADMIN)
   @Delete(':userId')
   async deleteUser(
-    @Headers('x-access-token') token: string,
+    @User() userInfo: JwtTokenInterface,
     @Param('userId') userId: string,
   ): Promise<{ message: string }> {
-    const userInfo = await this.jwtHelper.verify(token);
-    if (!userInfo) {
-      throw new Error('Invalid token');
-    }
     return this.usersService.deleteUser(userInfo, userId);
   }
 }

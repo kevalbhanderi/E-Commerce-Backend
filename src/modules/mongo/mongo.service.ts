@@ -180,4 +180,33 @@ export class MongoService {
       .findByIdAndUpdate(userId, updateData, { new: true })
       .exec();
   }
+
+  /**
+   * Get all users with pagination
+   * @param page
+   * @param limit
+   * @returns
+   */
+  async findAllUsers(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    users: UserDocument[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+      this.userModel.find().skip(skip).limit(limit).exec(),
+      this.userModel.countDocuments().exec(),
+    ]);
+
+    return {
+      users,
+      total,
+      page,
+      limit,
+    };
+  }
 }
