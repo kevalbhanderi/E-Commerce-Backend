@@ -11,3 +11,10 @@ export const User = createParamDecorator(
     return user;
   },
 );
+
+export const OptionalUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext): JwtTokenInterface | undefined => {
+    const request = ctx.switchToHttp().getRequest();
+    return (request as { user?: JwtTokenInterface }).user;
+  },
+);

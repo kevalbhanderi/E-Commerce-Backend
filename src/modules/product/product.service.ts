@@ -1,20 +1,26 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { MongoService } from 'src/modules/mongo/mongo.service';
 import { FileUploadHelper } from 'src/utils/file-upload.helper';
+import { LinkTokenHelper } from 'src/utils/link-token.helper';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { ProductListResponseDto } from './dto/product-list-response.dto';
+import { ShareLinkResponseDto } from './dto/share-link-response.dto';
 import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
 
 @Injectable()
 export class ProductService {
   private readonly logger = new Logger(ProductService.name);
+
+  private readonly linkTokenHelper = new LinkTokenHelper();
 
   constructor(
     private readonly mongoService: MongoService,
@@ -280,6 +286,94 @@ export class ProductService {
     this.logger.log(`Product deleted successfully: ${product.name}`);
 
     return { message: 'Product deleted successfully' };
+  }
+
+  /**
+   * Generate shareable link og the product
+   * @param productId
+   * @param type
+   * @param expiresIn
+   * @param userInfo
+   * @returns
+   */
+  async generateShareLink(
+    productId: string,
+    type: 'public' | 'private',
+    expiresIn: number | undefined,
+    userInfo: JwtTokenInterface,
+  ): Promise<ShareLinkResponseDto> {
+    // Verify product exists and user has access
+    const product = await this.mongoService.findProductById(productId);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // Set default expiration times (30 days for public and 7 days for private)
+    const defaultExpiresIn =
+      type === 'public' ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60;
+
+    const expirationSeconds = expiresIn || defaultExpiresIn;
+    const expires = this.linkTokenHelper.generateExpiration(expirationSeconds);
+
+    // Generate signed token
+    const token = this.linkTokenHelper.signToken({
+      productId,
+      type,
+      expires,
+    });
+
+    // Generate shareable link
+    const shareLink = `/api/product/share/${token}`;
+
+    this.logger.log(
+      `Share link generated for product ${productId} (${type}) by user ${userInfo.user_id}`,
+    );
+
+    return new ShareLinkResponseDto(shareLink, type, expires);
+  }
+
+  /**
+   * Access product via shareable link
+   * @param token
+   * @param userInfo
+   * @returns
+   */
+  async accessSharedProduct(
+    token: string,
+    userInfo?: JwtTokenInterface,
+  ): Promise<ProductResponseDto> {
+    // Verify and parse token
+    const parsedToken = this.linkTokenHelper.verifyToken(token);
+    if (!parsedToken) {
+      throw new ForbiddenException('Invalid or expired share link');
+    }
+
+    // Check if private link requires authentication
+    if (parsedToken.type === 'private' && !userInfo) {
+      throw new UnauthorizedException(
+        'Private share link requires authentication',
+      );
+    }
+
+    // Fetch product
+    const product = await this.mongoService.findProductById(
+      parsedToken.productId,
+    );
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // Verify product is active and not deleted
+    if (!product.isActive || product.isDeleted) {
+      throw new NotFoundException('Product is not available');
+    }
+
+    this.logger.log(
+      `Product accessed via ${parsedToken.type} share link: ${parsedToken.productId}`,
+    );
+
+    return this.mapToProductResponseDto(product);
   }
 
   /**

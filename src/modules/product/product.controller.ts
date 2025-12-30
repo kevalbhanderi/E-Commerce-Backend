@@ -33,11 +33,14 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { ProductListResponseDto } from './dto/product-list-response.dto';
+import { GenerateShareLinkDto } from './dto/generate-share-link.dto';
+import { ShareLinkResponseDto } from './dto/share-link-response.dto';
 import { AuthGuard } from 'src/guard/auth.guard';
+import { OptionalAuthGuard } from 'src/guard/optional-auth.guard';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { Role } from 'src/enums/role.enum';
-import { User } from 'src/decorators/user.decorator';
+import { User, OptionalUser } from 'src/decorators/user.decorator';
 import type { JwtTokenInterface } from 'src/interface/jwt.token.interface';
 
 @Controller('product')
@@ -162,22 +165,6 @@ export class ProductController {
 
   @ApiOperation({ summary: 'Update product and images' })
   @ApiConsumes('multipart/form-data')
-  // @ApiBody({
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       name: { type: 'string' },
-  //       slug: { type: 'string' },
-  //       description: { type: 'string' },
-  //       price: { type: 'number' },
-  //       isActive: { type: 'boolean' },
-  //       image: {
-  //         type: 'string',
-  //         format: 'binary',
-  //       },
-  //     },
-  //   },
-  // })
   @ApiParam({ name: 'productId' })
   @ApiOkResponse({
     description: 'Product updated successfully',
@@ -230,5 +217,57 @@ export class ProductController {
     @Param('productId') productId: string,
   ): Promise<{ message: string }> {
     return this.productService.deleteProduct(productId);
+  }
+
+  @ApiOperation({ summary: 'Generate shareable link for product' })
+  @ApiParam({ name: 'productId' })
+  @ApiCreatedResponse({
+    description: 'Share link generated successfully',
+    type: ShareLinkResponseDto,
+  })
+  @ApiBadRequestResponse({ description: 'Bad request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({
+    description:
+      'Forbidden - Only authenticated users can generate share links',
+  })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @Roles(Role.ADMIN, Role.USER, Role.MANAGER)
+  @Post('/:productId/share')
+  async generateShareLink(
+    @Param('productId') productId: string,
+    @Body() generateShareLinkDto: GenerateShareLinkDto,
+    @User() userInfo: JwtTokenInterface,
+  ): Promise<ShareLinkResponseDto> {
+    return this.productService.generateShareLink(
+      productId,
+      generateShareLinkDto.type,
+      generateShareLinkDto.expiresIn,
+      userInfo,
+    );
+  }
+
+  @ApiOperation({ summary: 'Access product via shareable link' })
+  @ApiParam({ name: 'token' })
+  @ApiOkResponse({
+    description: 'Product retrieved successfully',
+    type: ProductResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized - Private link requires authentication',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden - Invalid or expired share link',
+  })
+  @ApiNotFoundResponse({ description: 'Product not found or not available' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @UseGuards(OptionalAuthGuard)
+  @Get('/share/:token')
+  async accessSharedProduct(
+    @Param('token') token: string,
+    @OptionalUser() userInfo?: JwtTokenInterface,
+  ): Promise<ProductResponseDto> {
+    return this.productService.accessSharedProduct(token, userInfo);
   }
 }

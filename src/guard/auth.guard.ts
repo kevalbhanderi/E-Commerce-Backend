@@ -15,6 +15,11 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
 
+    // Skip authentication for share link access route (public access)
+    if (request.url && request.url.includes('/product/share/')) {
+      return true;
+    }
+
     const token = this.jwtHelper.getTokenFromHeader(request);
 
     if (!token) {
