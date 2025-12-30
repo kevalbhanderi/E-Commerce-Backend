@@ -381,6 +381,52 @@ export class MongoService {
   }
 
   /**
+   * Get all subcategories with pagination
+   * @param page
+   * @param limit
+   * @param isActive
+   * @param categoryId
+   * @returns
+   */
+  async findAllSubCategories(
+    page: number = 1,
+    limit: number = 10,
+    isActive?: boolean,
+    categoryId?: string,
+  ): Promise<{
+    subCategories: SubCategoryDocument[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const query: { isActive?: boolean; categoryId?: string } = {};
+    if (isActive !== undefined) {
+      query.isActive = isActive;
+    }
+    if (categoryId) {
+      query.categoryId = categoryId;
+    }
+
+    const [subCategories, total] = await Promise.all([
+      this.subCategoryModel
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .exec(),
+      this.subCategoryModel.countDocuments(query).exec(),
+    ]);
+
+    return {
+      subCategories,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
    * Update subcategory by ID
    * @param subCategoryId
    * @param updateData
