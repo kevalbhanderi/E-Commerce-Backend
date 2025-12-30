@@ -7,9 +7,19 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { UsersModule } from './modules/users/users.module';
 import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/sub-category/sub-category.module';
+import { ProductModule } from './modules/product/product.module';
 
 @Module({
-  imports: [DatabaseModule, MongoModule, AuthModule, ProfileModule, UsersModule, CategoryModule, SubCategoryModule],
+  imports: [
+    DatabaseModule,
+    MongoModule,
+    AuthModule,
+    ProfileModule,
+    UsersModule,
+    CategoryModule,
+    SubCategoryModule,
+    ProductModule,
+  ],
   controllers: [AppController],
   providers: [],
 })

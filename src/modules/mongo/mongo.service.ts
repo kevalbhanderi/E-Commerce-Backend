@@ -9,6 +9,7 @@ import {
 } from './schema/session-token.schema';
 import { Category, CategoryDocument } from './schema/category.schema';
 import { SubCategory, SubCategoryDocument } from './schema/subcategory.schema';
+import { Product, ProductDocument } from './schema/product.schema';
 
 @Injectable()
 export class MongoService {
@@ -21,6 +22,8 @@ export class MongoService {
     private readonly categoryModel: Model<CategoryDocument>,
     @InjectModel(SubCategory.name)
     private readonly subCategoryModel: Model<SubCategoryDocument>,
+    @InjectModel(Product.name)
+    private readonly productModel: Model<ProductDocument>,
   ) {}
 
   async findUserByEmail(email: string): Promise<UserDocument | null> {
@@ -452,5 +455,139 @@ export class MongoService {
    */
   async deleteSubCategoryById(subCategoryId: string): Promise<void> {
     await this.subCategoryModel.findByIdAndDelete(subCategoryId).exec();
+  }
+
+  /**
+   * Create product
+   * @param productData
+   * @returns
+   */
+  async createProduct(productData: {
+    name: string;
+    slug: string;
+    description: string;
+    price: number;
+    categoryId: string;
+    subCategoryId: string;
+    createdBy: string;
+  }): Promise<ProductDocument> {
+    const product = new this.productModel({
+      ...productData,
+      isActive: true,
+      isDeleted: false,
+      images: [],
+    });
+    return product.save();
+  }
+
+  /**
+   * Find product by slug
+   * @param slug
+   * @returns
+   */
+  async findProductBySlug(slug: string): Promise<ProductDocument | null> {
+    return this.productModel
+      .findOne({ slug: slug.toLowerCase(), isDeleted: false })
+      .exec();
+  }
+
+  /**
+   * Find product by ID
+   * @param productId
+   * @returns
+   */
+  async findProductById(productId: string): Promise<ProductDocument | null> {
+    return this.productModel
+      .findOne({ _id: productId, isDeleted: false })
+      .exec();
+  }
+
+  /**
+   * Get all products with pagination
+   * @param page
+   * @param limit
+   * @param isActive
+   * @param categoryId
+   * @param subCategoryId
+   * @returns
+   */
+  async findAllProducts(
+    page: number = 1,
+    limit: number = 10,
+    isActive?: boolean,
+    categoryId?: string,
+    subCategoryId?: string,
+  ): Promise<{
+    products: ProductDocument[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const query: {
+      isDeleted: boolean;
+      isActive?: boolean;
+      categoryId?: string;
+      subCategoryId?: string;
+    } = { isDeleted: false };
+    if (isActive !== undefined) {
+      query.isActive = isActive;
+    }
+    if (categoryId) {
+      query.categoryId = categoryId;
+    }
+    if (subCategoryId) {
+      query.subCategoryId = subCategoryId;
+    }
+
+    const [products, total] = await Promise.all([
+      this.productModel
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .exec(),
+      this.productModel.countDocuments(query).exec(),
+    ]);
+
+    return {
+      products,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Update product by ID
+   * @param productId
+   * @param updateData
+   * @returns
+   */
+  async updateProductById(
+    productId: string,
+    updateData: {
+      name?: string;
+      slug?: string;
+      description?: string;
+      price?: number;
+      isActive?: boolean;
+      images?: any[];
+    },
+  ): Promise<ProductDocument | null> {
+    return this.productModel
+      .findByIdAndUpdate(productId, updateData, { new: true })
+      .exec();
+  }
+
+  /**
+   * Soft delete product by ID (set isDeleted to true)
+   * @param productId
+   * @returns
+   */
+  async deleteProductById(productId: string): Promise<ProductDocument | null> {
+    return this.productModel
+      .findByIdAndUpdate(productId, { isDeleted: true }, { new: true })
+      .exec();
   }
 }

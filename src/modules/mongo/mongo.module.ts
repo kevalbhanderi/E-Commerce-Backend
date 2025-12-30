@@ -10,6 +10,7 @@ import {
 } from './schema/session-token.schema';
 import { Category, CategorySchema } from './schema/category.schema';
 import { SubCategory, SubCategorySchema } from './schema/subcategory.schema';
+import { Product, ProductSchema } from './schema/product.schema';
 import { AdminSeeder } from './seeder/admin.seeder';
 import { JwtHelper } from 'src/utils/jwt.helper';
 
@@ -21,6 +22,7 @@ import { JwtHelper } from 'src/utils/jwt.helper';
       { name: SessionToken.name, schema: SessionTokenSchema },
       { name: Category.name, schema: CategorySchema },
       { name: SubCategory.name, schema: SubCategorySchema },
+      { name: Product.name, schema: ProductSchema },
     ]),
   ],
   controllers: [MongoController],
