@@ -118,9 +118,9 @@ ENCRYPTION_KEY=your_64_character_hex_key_here
 ENABLE_ENCRYPTION=true
 
 # Default Admin User (Optional - for seeding)
-DEFAULT_ADMIN_EMAIL=admin@gmail.com
-DEFAULT_ADMIN_PASSWORD=Admin@123
-DEFAULT_ADMIN_NAME=Admin User
+DEFAULT_ADMIN_EMAIL=admin_email
+DEFAULT_ADMIN_PASSWORD=admin_password
+DEFAULT_ADMIN_NAME=admin_user
 
 # Link Token Secret (Optional - falls back to JWT_SECRET)
 LINK_TOKEN_SECRET=your_link_token_secret
